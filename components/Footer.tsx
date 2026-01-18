@@ -10,7 +10,23 @@ const Footer: React.FC<FooterProps> = ({ onStartAssistant }) => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const offset = 80;
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    // Placeholder prevention for dummy links
+    if ((e.target as HTMLAnchorElement).getAttribute('href') === '#') {
+      e.preventDefault();
     }
   };
 
@@ -26,16 +42,16 @@ const Footer: React.FC<FooterProps> = ({ onStartAssistant }) => {
               <span className="text-xl font-bold">Green Heating & Air</span>
             </div>
             <p className="text-slate-400 leading-relaxed mb-6">
-              Providing Mississauga and the GTA with energy-efficient HVAC solutions since 2008.
+              Mississauga's premier choice for energy-efficient HVAC and government rebate maximization.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-forest-green transition-colors" aria-label="Facebook">
+              <a href="#" onClick={handleLinkClick} className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-forest-green transition-colors" aria-label="Facebook">
                 <i className="fab fa-facebook-f"></i>
               </a>
-              <a href="#" className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-forest-green transition-colors" aria-label="Instagram">
+              <a href="#" onClick={handleLinkClick} className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-forest-green transition-colors" aria-label="Instagram">
                 <i className="fab fa-instagram"></i>
               </a>
-              <a href="#" className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-forest-green transition-colors" aria-label="LinkedIn">
+              <a href="#" onClick={handleLinkClick} className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-forest-green transition-colors" aria-label="LinkedIn">
                 <i className="fab fa-linkedin-in"></i>
               </a>
             </div>
@@ -44,28 +60,29 @@ const Footer: React.FC<FooterProps> = ({ onStartAssistant }) => {
           <div>
             <h4 className="text-lg font-bold mb-6">Services</h4>
             <ul className="space-y-4 text-slate-400">
-              <li><button onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left">Heat Pump Installation</button></li>
-              <li><button onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left">Emergency Furnace Repair</button></li>
-              <li><button onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left">AC Installation</button></li>
-              <li><button onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left">Ductless Systems</button></li>
-              <li><button onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left">Home Energy Audits</button></li>
+              <li><button type="button" onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left focus:outline-none">Heat Pump Installation</button></li>
+              <li><button type="button" onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left focus:outline-none">Emergency Furnace Repair</button></li>
+              <li><button type="button" onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left focus:outline-none">AC Installation</button></li>
+              <li><button type="button" onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left focus:outline-none">Ductless Systems</button></li>
+              <li><button type="button" onClick={() => scrollToSection('services')} className="hover:text-emerald-400 transition-colors text-left focus:outline-none">Home Energy Audits</button></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-lg font-bold mb-6">Quick Links</h4>
             <ul className="space-y-4 text-slate-400">
-              <li><button onClick={() => scrollToSection('rebates')} className="hover:text-emerald-400 transition-colors text-left">2026 Rebate Guide</button></li>
-              <li><button onClick={() => scrollToSection('about')} className="hover:text-emerald-400 transition-colors text-left">About Abe</button></li>
+              <li><button type="button" onClick={() => scrollToSection('rebates')} className="hover:text-emerald-400 transition-colors text-left focus:outline-none">2026 Rebate Guide</button></li>
+              <li><button type="button" onClick={() => scrollToSection('about')} className="hover:text-emerald-400 transition-colors text-left focus:outline-none">About Abe</button></li>
               <li>
                 <button 
+                  type="button"
                   onClick={onStartAssistant}
-                  className="hover:text-emerald-400 transition-colors text-left"
+                  className="hover:text-emerald-400 transition-colors text-left focus:outline-none"
                 >
                   Schedule Service
                 </button>
               </li>
-              <li><button onClick={() => scrollToSection('about')} className="hover:text-emerald-400 transition-colors text-left">Sustainability Policy</button></li>
+              <li><button type="button" onClick={() => scrollToSection('about')} className="hover:text-emerald-400 transition-colors text-left focus:outline-none">Sustainability Policy</button></li>
             </ul>
           </div>
 

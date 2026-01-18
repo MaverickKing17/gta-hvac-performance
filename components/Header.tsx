@@ -7,7 +7,17 @@ const Header: React.FC = () => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      // Small offset for the fixed header
+      const offset = 80;
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
     setIsMenuOpen(false);
   };
@@ -18,9 +28,9 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center h-20">
           <button 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center gap-3 text-left focus:outline-none"
+            className="flex items-center gap-3 text-left focus:outline-none group"
           >
-            <div className="w-10 h-10 bg-forest-green rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-forest-green rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
               <i className="fas fa-leaf text-white"></i>
             </div>
             <div>
@@ -30,10 +40,31 @@ const Header: React.FC = () => {
           </button>
           
           <nav className="hidden md:flex space-x-8 items-center">
-            <button onClick={() => scrollToSection('rebates')} className="text-slate-600 hover:text-forest-green font-medium transition-colors">2026 Rebates</button>
-            <button onClick={() => scrollToSection('services')} className="text-slate-600 hover:text-forest-green font-medium transition-colors">Services</button>
-            <button onClick={() => scrollToSection('about')} className="text-slate-600 hover:text-forest-green font-medium transition-colors">About Abe</button>
-            <a href="tel:9055551234" className="bg-forest-green text-white px-5 py-2 rounded-full font-bold hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
+            <button 
+              type="button"
+              onClick={() => scrollToSection('rebates')} 
+              className="text-slate-600 hover:text-forest-green font-medium transition-colors"
+            >
+              2026 Rebates
+            </button>
+            <button 
+              type="button"
+              onClick={() => scrollToSection('services')} 
+              className="text-slate-600 hover:text-forest-green font-medium transition-colors"
+            >
+              Services
+            </button>
+            <button 
+              type="button"
+              onClick={() => scrollToSection('about')} 
+              className="text-slate-600 hover:text-forest-green font-medium transition-colors"
+            >
+              About Abe
+            </button>
+            <a 
+              href="tel:9055551234" 
+              className="bg-forest-green text-white px-5 py-2 rounded-full font-bold hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
+            >
               <i className="fas fa-phone-alt text-sm"></i> 905-555-1234
             </a>
           </nav>
@@ -51,10 +82,10 @@ const Header: React.FC = () => {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t p-6 space-y-6 shadow-2xl animate-in slide-in-from-top duration-300">
-          <button onClick={() => scrollToSection('rebates')} className="block w-full text-left text-lg text-slate-700 font-medium">2026 Rebates</button>
-          <button onClick={() => scrollToSection('services')} className="block w-full text-left text-lg text-slate-700 font-medium">Services</button>
-          <button onClick={() => scrollToSection('about')} className="block w-full text-left text-lg text-slate-700 font-medium">About Abe</button>
-          <a href="tel:9055551234" className="block bg-forest-green text-white px-5 py-4 rounded-xl font-bold text-center shadow-lg">
+          <button onClick={() => scrollToSection('rebates')} className="block w-full text-left text-lg text-slate-700 font-medium p-2">2026 Rebates</button>
+          <button onClick={() => scrollToSection('services')} className="block w-full text-left text-lg text-slate-700 font-medium p-2">Services</button>
+          <button onClick={() => scrollToSection('about')} className="block w-full text-left text-lg text-slate-700 font-medium p-2">About Abe</button>
+          <a href="tel:9055551234" className="block bg-forest-green text-white px-5 py-4 rounded-xl font-bold text-center shadow-lg active:scale-95 transition-transform">
             Call 905-555-1234
           </a>
         </div>
