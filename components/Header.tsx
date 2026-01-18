@@ -49,7 +49,7 @@ const Header: React.FC = () => {
               onClick={() => scrollToSection('about')} 
               className="text-slate-600 hover:text-forest-green font-medium transition-colors"
             >
-              About Abe
+              About Green Heating & Air
             </button>
             <a 
               href="tel:9055551234" 
@@ -74,7 +74,7 @@ const Header: React.FC = () => {
         <div className="md:hidden bg-white border-t p-6 space-y-6 shadow-2xl animate-in slide-in-from-top duration-300">
           <button onClick={() => scrollToSection('rebates')} className="block w-full text-left text-lg text-slate-700 font-medium p-2">2026 Rebates</button>
           <button onClick={() => scrollToSection('services')} className="block w-full text-left text-lg text-slate-700 font-medium p-2">Services</button>
-          <button onClick={() => scrollToSection('about')} className="block w-full text-left text-lg text-slate-700 font-medium p-2">About Abe</button>
+          <button onClick={() => scrollToSection('about')} className="block w-full text-left text-lg text-slate-700 font-medium p-2">About Green Heating & Air</button>
           <a href="tel:9055551234" className="block bg-forest-green text-white px-5 py-4 rounded-xl font-bold text-center shadow-lg active:scale-95 transition-transform">
             Call 905-555-1234
           </a>

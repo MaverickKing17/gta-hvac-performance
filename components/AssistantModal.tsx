@@ -24,8 +24,19 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
   const nextStartTimeRef = useRef<number>(0);
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const transcriptionBufferRef = useRef({ user: '', model: '' });
+  const activeStreamRef = useRef<MediaStream | null>(null);
 
   const stopSession = useCallback(() => {
+    // 1. Stop all audio tracks to release the hardware lock
+    if (activeStreamRef.current) {
+      activeStreamRef.current.getTracks().forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
+      activeStreamRef.current = null;
+    }
+
+    // 2. Close the Gemini session
     if (sessionRef.current) {
       try {
         sessionRef.current.close?.();
@@ -35,11 +46,13 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       sessionRef.current = null;
     }
     
+    // 3. Clear audio buffers
     sourcesRef.current.forEach(s => {
       try { s.stop(); } catch (e) {}
     });
     sourcesRef.current.clear();
     
+    // 4. Cleanup AudioContexts
     if (audioContextRef.current?.state !== 'closed') {
       audioContextRef.current?.close();
     }
@@ -60,21 +73,42 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       setIsConnecting(true);
       setError(null);
 
+      // Check for hardware support
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw { message: "Your browser does not support voice features. Please use a modern browser like Chrome or Edge.", type: 'generic' };
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(err => {
-        console.error("Mic error:", err);
+      // Check permission state explicitly if possible
+      if (navigator.permissions && navigator.permissions.query) {
+        const result = await navigator.permissions.query({ name: 'microphone' as any });
+        if (result.state === 'denied') {
+          throw { 
+            message: "Microphone access is explicitly blocked in your browser settings for this site. Please click the lock icon in your address bar and reset the permission.",
+            type: 'permission' 
+          };
+        }
+      }
+
+      // Request stream - ensure we catch the rejection explicitly
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      }).catch(err => {
+        console.error("Mic error during getUserMedia:", err);
         throw { 
-          message: "Microphone access was denied. Please click the lock icon in your address bar and set Microphone to 'Allow' to speak with our experts.",
+          message: "Could not access microphone. Please ensure no other apps are using it and that you've clicked 'Allow' when the browser asked.",
           type: 'permission' 
         };
       });
       
+      activeStreamRef.current = stream;
+
       const apiKey = process.env.API_KEY;
       if (!apiKey) {
-        throw { message: "Voice service configuration error. Please try again later.", type: 'connection' };
+        throw { message: "Service temporarily unavailable. Please try again in a few moments.", type: 'connection' };
       }
 
       const ai = createAiClient();
@@ -88,7 +122,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
             setIsActive(true);
             setIsConnecting(false);
             
-            if (inputAudioContextRef.current) {
+            if (inputAudioContextRef.current && stream) {
               const source = inputAudioContextRef.current.createMediaStreamSource(stream);
               const scriptProcessor = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
               
@@ -206,7 +240,6 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-        {/* Header */}
         <div className={`p-6 flex items-center justify-between border-b transition-colors duration-500 ${currentPersona === Persona.JESSICA ? 'bg-red-50 text-red-900 border-red-100' : 'bg-emerald-50 text-emerald-900 border-emerald-100'}`}>
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner transition-colors duration-500 ${currentPersona === Persona.JESSICA ? 'bg-red-500 text-white' : 'bg-emerald-700 text-white'}`}>
@@ -222,7 +255,6 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Conversation Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50 min-h-[300px] scroll-smooth">
           {transcriptions.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-8">
@@ -245,7 +277,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
                 </div>
               )}
               {isActive && (
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center text-center">
                   <div className="flex gap-1.5 mb-6 h-12 items-center">
                     {[1, 2, 3, 4, 5, 6, 7].map(i => (
                       <div 
@@ -259,8 +291,8 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
                       ></div>
                     ))}
                   </div>
-                  <p className="text-emerald-700 font-bold text-lg">Listening...</p>
-                  <p className="text-slate-500 text-sm mt-2">Go ahead, tell Chloe about your home's heating.</p>
+                  <p className="text-emerald-700 font-bold text-lg">Chloe is Listening...</p>
+                  <p className="text-slate-500 text-sm mt-2 max-w-xs">Ask her about heat pump rebates or how the HRS program works.</p>
                 </div>
               )}
             </div>
@@ -284,35 +316,37 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
             <div className={`p-4 rounded-xl text-sm border flex gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${
               error.type === 'permission' ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-red-50 text-red-900 border-red-200'
             }`}>
-              <i className={`fas ${error.type === 'permission' ? 'fa-lock' : 'fa-exclamation-circle'} mt-1`}></i>
+              <i className={`fas ${error.type === 'permission' ? 'fa-microphone-slash' : 'fa-exclamation-circle'} mt-1`}></i>
               <div>
-                <p className="font-bold mb-1">{error.type === 'permission' ? 'Microphone Required' : 'Oops! Something went wrong'}</p>
+                <p className="font-bold mb-1">{error.type === 'permission' ? 'Microphone Issue' : 'Oops! Something went wrong'}</p>
                 <p className="leading-relaxed opacity-90">{error.message}</p>
+                {error.type === 'permission' && (
+                  <button onClick={startSession} className="mt-2 text-xs font-bold underline uppercase tracking-tight">Try again</button>
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Footer */}
         <div className="p-6 bg-white border-t flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="flex gap-2 w-full sm:w-auto">
             {!isActive ? (
               <Button 
                 onClick={startSession} 
                 isLoading={isConnecting} 
-                className="w-full sm:w-auto shadow-lg hover:shadow-emerald-900/10"
+                className="w-full sm:w-auto shadow-lg"
               >
                 <i className="fas fa-phone-alt mr-2"></i> Start Consultation
               </Button>
             ) : (
-              <Button variant="danger" onClick={stopSession} className="w-full sm:w-auto shadow-lg hover:shadow-red-900/10">
+              <Button variant="danger" onClick={stopSession} className="w-full sm:w-auto shadow-lg">
                 <i className="fas fa-phone-slash mr-2"></i> End Consultation
               </Button>
             )}
           </div>
           <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            Secure Voice Channel Active
+            <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></span>
+            {isActive ? 'Live Channel Active' : 'Channel Encrypted'}
           </div>
         </div>
       </div>

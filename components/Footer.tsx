@@ -56,7 +56,7 @@ const Footer: React.FC<FooterProps> = ({ onStartAssistant }) => {
             <h4 className="text-lg font-bold mb-6">Quick Links</h4>
             <ul className="space-y-4 text-slate-400">
               <li><button type="button" onClick={() => scrollToSection('rebates')} className="hover:text-emerald-400 transition-colors text-left">2026 Rebate Guide</button></li>
-              <li><button type="button" onClick={() => scrollToSection('about')} className="hover:text-emerald-400 transition-colors text-left">About Abe</button></li>
+              <li><button type="button" onClick={() => scrollToSection('about')} className="hover:text-emerald-400 transition-colors text-left">About Green Heating & Air</button></li>
               <li>
                 <button 
                   type="button"
