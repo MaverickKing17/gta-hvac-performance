@@ -60,16 +60,14 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       setIsConnecting(true);
       setError(null);
 
-      // 1. Check if browser supports mediaDevices
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw { message: "Your browser does not support voice features. Please use a modern browser like Chrome or Edge.", type: 'generic' };
       }
 
-      // 2. Attempt to get microphone stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(err => {
         console.error("Mic error:", err);
         throw { 
-          message: "Microphone access was denied. Please click the lock icon in your address bar and set Microphone to 'Allow' to speak with Chloe.",
+          message: "Microphone access was denied. Please click the lock icon in your address bar and set Microphone to 'Allow' to speak with our experts.",
           type: 'permission' 
         };
       });
@@ -144,7 +142,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
               
               const emergencyKeywords = ["gas smell", "no heat", "water leak", "banging", "emergency", "urgent"];
               if (emergencyKeywords.some(k => userText.toLowerCase().includes(k) || modelText.toLowerCase().includes(k))) {
-                setCurrentPersona(Persona.SAM);
+                setCurrentPersona(Persona.JESSICA);
               }
 
               transcriptionBufferRef.current = { user: '', model: '' };
@@ -209,13 +207,13 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
         {/* Header */}
-        <div className={`p-6 flex items-center justify-between border-b transition-colors duration-500 ${currentPersona === Persona.SAM ? 'bg-red-50 text-red-900 border-red-100' : 'bg-emerald-50 text-emerald-900 border-emerald-100'}`}>
+        <div className={`p-6 flex items-center justify-between border-b transition-colors duration-500 ${currentPersona === Persona.JESSICA ? 'bg-red-50 text-red-900 border-red-100' : 'bg-emerald-50 text-emerald-900 border-emerald-100'}`}>
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner transition-colors duration-500 ${currentPersona === Persona.SAM ? 'bg-red-500 text-white' : 'bg-emerald-700 text-white'}`}>
-              <i className={currentPersona === Persona.SAM ? 'fas fa-shield-halved' : 'fas fa-headset'}></i>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner transition-colors duration-500 ${currentPersona === Persona.JESSICA ? 'bg-red-500 text-white' : 'bg-emerald-700 text-white'}`}>
+              <i className={currentPersona === Persona.JESSICA ? 'fas fa-shield-halved' : 'fas fa-headset'}></i>
             </div>
             <div>
-              <h2 className="text-xl font-bold">{currentPersona === Persona.SAM ? 'Sam (Emergency Dispatch)' : 'Chloe (Front Desk)'}</h2>
+              <h2 className="text-xl font-bold">{currentPersona === Persona.JESSICA ? 'Jessica (Emergency Dispatch)' : 'Chloe (Front Desk)'}</h2>
               <p className="text-sm opacity-80">{isActive ? 'Live on the line' : isConnecting ? 'Connecting...' : 'Ready to help'}</p>
             </div>
           </div>
@@ -272,7 +270,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
                 <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
                   t.role === 'user' 
                     ? 'bg-emerald-800 text-white rounded-tr-none' 
-                    : t.persona === Persona.SAM 
+                    : t.persona === Persona.JESSICA 
                       ? 'bg-red-100 text-red-900 border border-red-200 rounded-tl-none font-medium' 
                       : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
                 }`}>

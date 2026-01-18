@@ -1,7 +1,7 @@
 
 export enum Persona {
   CHLOE = 'Chloe',
-  SAM = 'Sam'
+  JESSICA = 'Jessica'
 }
 
 export interface LeadData {

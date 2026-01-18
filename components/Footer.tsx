@@ -94,7 +94,7 @@ const Footer: React.FC<FooterProps> = ({ onStartAssistant }) => {
         </div>
         
         <div className="flex flex-col md:flex-row justify-between items-center text-slate-500 text-sm">
-          <p>© 2025 Green Heating and Air Inc. All rights reserved.</p>
+          <p>© 2026 Green Heating and Air Inc. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
              <span>ESA #1234567</span>
              <span className="opacity-30">|</span>

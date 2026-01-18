@@ -7,12 +7,14 @@ const AboutOwner: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center gap-16">
           <div className="w-full lg:w-1/2 relative">
-            <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl ring-8 ring-white bg-white">
+            {/* Aspect ratio and object positioning refined to ensure the face (top part of the image) is visible */}
+            <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl ring-8 ring-white bg-white max-h-[600px]">
               <img 
                 src="https://i.ibb.co/5h96y7Zw/gemini-3-pro-image-preview-2k-a-Replace-the-current.png" 
                 alt="Abe, Owner of Green Heating & Air Inc." 
-                className="w-full h-auto aspect-square object-cover"
+                className="w-full h-full object-cover object-top"
                 loading="lazy"
+                style={{ aspectRatio: '3/4' }}
               />
             </div>
             <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-emerald-800 rounded-full blur-3xl opacity-20 -z-10"></div>

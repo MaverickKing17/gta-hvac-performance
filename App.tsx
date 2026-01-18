@@ -20,17 +20,20 @@ const App: React.FC = () => {
         <Hero onStartAssistant={handleStartAssistant} />
         
         {/* Floating Emergency Banner */}
-        <div className="bg-red-600 text-white py-2 sticky top-20 z-30 shadow-md">
+        <div className="bg-red-600 text-white py-3 sticky top-20 z-30 shadow-xl border-b border-red-500">
           <div className="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm sm:text-base font-bold">
-            <span className="flex items-center gap-2">
-              <i className="fas fa-exclamation-triangle animate-pulse"></i> 
+            <span className="flex items-center gap-3">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+              </span>
               Emergency? 4-Hour Response Guarantee
             </span>
             <button 
               onClick={handleStartAssistant}
-              className="bg-white text-red-600 px-4 py-1 rounded-full text-xs sm:text-sm hover:bg-slate-100 transition-colors focus:ring-2 focus:ring-white focus:outline-none"
+              className="bg-white text-red-700 px-6 py-2 rounded-full text-xs sm:text-sm font-black uppercase tracking-tight hover:bg-slate-100 transition-all shadow-md active:scale-95 focus:ring-2 focus:ring-white focus:outline-none"
             >
-              Get Sam (Dispatch)
+              Get Jessica (Dispatch)
             </button>
           </div>
         </div>
