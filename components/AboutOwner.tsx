@@ -10,8 +10,8 @@ const AboutOwner: React.FC = () => {
             <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(26,67,50,0.15)] ring-12 ring-white bg-white">
               <img 
                 src="https://i.ibb.co/5h96y7Zw/gemini-3-pro-image-preview-2k-a-Replace-the-current.png" 
-                alt="Abe, Founder of Green Heating & Air Inc." 
-                className="w-full h-auto block transform hover:scale-105 transition-transform duration-700"
+                alt="Green Heating & Air Technicians" 
+                className="w-full h-auto block transform hover:scale-105 transition-transform duration-700 object-top"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/10 to-transparent pointer-events-none"></div>
@@ -22,7 +22,7 @@ const AboutOwner: React.FC = () => {
           </div>
           
           <div className="w-full lg:w-2/5">
-            <span className="inline-block px-4 py-1.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider mb-6">About Our Company</span>
+            <span className="inline-block px-4 py-1.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider mb-6">About Green Heating & Air</span>
             <h2 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">Mississauga’s Leaders in High-Efficiency Comfort</h2>
             
             <div className="space-y-6 text-lg text-slate-600 leading-relaxed">

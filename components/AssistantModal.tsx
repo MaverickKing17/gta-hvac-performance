@@ -27,37 +27,36 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
   const activeStreamRef = useRef<MediaStream | null>(null);
 
   const stopSession = useCallback(() => {
-    // 1. Stop all audio tracks to release the hardware lock
+    // 1. Explicitly stop all media tracks to release the hardware lock immediately
     if (activeStreamRef.current) {
       activeStreamRef.current.getTracks().forEach(track => {
         track.stop();
-        track.enabled = false;
       });
       activeStreamRef.current = null;
     }
 
-    // 2. Close the Gemini session
+    // 2. Close the session gracefully
     if (sessionRef.current) {
       try {
         sessionRef.current.close?.();
       } catch (e) {
-        console.warn("Session close error:", e);
+        console.warn("Session close warning:", e);
       }
       sessionRef.current = null;
     }
     
-    // 3. Clear audio buffers
+    // 3. Stop all audio playback sources
     sourcesRef.current.forEach(s => {
       try { s.stop(); } catch (e) {}
     });
     sourcesRef.current.clear();
     
-    // 4. Cleanup AudioContexts
-    if (audioContextRef.current?.state !== 'closed') {
-      audioContextRef.current?.close();
+    // 4. Cleanup contexts
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close();
     }
-    if (inputAudioContextRef.current?.state !== 'closed') {
-      inputAudioContextRef.current?.close();
+    if (inputAudioContextRef.current && inputAudioContextRef.current.state !== 'closed') {
+      inputAudioContextRef.current.close();
     }
     
     audioContextRef.current = null;
@@ -73,23 +72,13 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       setIsConnecting(true);
       setError(null);
 
-      // Check for hardware support
+      // Hardware availability check
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw { message: "Your browser does not support voice features. Please use a modern browser like Chrome or Edge.", type: 'generic' };
+        throw { message: "Your current browser does not support secure voice calls. Please try using Chrome or Safari.", type: 'generic' };
       }
 
-      // Check permission state explicitly if possible
-      if (navigator.permissions && navigator.permissions.query) {
-        const result = await navigator.permissions.query({ name: 'microphone' as any });
-        if (result.state === 'denied') {
-          throw { 
-            message: "Microphone access is explicitly blocked in your browser settings for this site. Please click the lock icon in your address bar and reset the permission.",
-            type: 'permission' 
-          };
-        }
-      }
-
-      // Request stream - ensure we catch the rejection explicitly
+      // DIRECT MICROPHONE REQUEST
+      // We skip the Permissions API query because it is inconsistent across browsers and often blocks falsely.
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -97,9 +86,9 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
           autoGainControl: true
         } 
       }).catch(err => {
-        console.error("Mic error during getUserMedia:", err);
+        console.error("Mic access denied:", err);
         throw { 
-          message: "Could not access microphone. Please ensure no other apps are using it and that you've clicked 'Allow' when the browser asked.",
+          message: "Microphone access was denied. Please check your browser's address bar (click the lock icon) to ensure Microphone is set to 'Allow'.",
           type: 'permission' 
         };
       });
@@ -108,7 +97,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
 
       const apiKey = process.env.API_KEY;
       if (!apiKey) {
-        throw { message: "Service temporarily unavailable. Please try again in a few moments.", type: 'connection' };
+        throw { message: "System configuration error. Please refresh the page and try again.", type: 'connection' };
       }
 
       const ai = createAiClient();
@@ -206,8 +195,8 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
             }
           },
           onerror: (e) => {
-            console.error("Gemini Live Error:", e);
-            setError({ message: "The voice connection was interrupted. Let's try reconnecting.", type: 'connection' });
+            console.error("Gemini Error:", e);
+            setError({ message: "The voice channel was interrupted. Let's try reconnecting.", type: 'connection' });
             stopSession();
           },
           onclose: () => stopSession()
@@ -225,15 +214,17 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       });
       sessionRef.current = await sessionPromise;
     } catch (err: any) {
-      setError(err.type ? err : { message: err.message || "Failed to start consultation.", type: 'generic' });
+      setError(err.type ? err : { message: err.message || "Could not start call.", type: 'generic' });
       setIsConnecting(false);
       stopSession();
     }
   };
 
   useEffect(() => {
-    return () => stopSession();
-  }, [stopSession]);
+    return () => {
+      if (isActive) stopSession();
+    };
+  }, [isActive, stopSession]);
 
   if (!isOpen) return null;
 
@@ -273,7 +264,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
               {isConnecting && (
                 <div className="flex flex-col items-center">
                   <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-700 rounded-full animate-spin mb-4"></div>
-                  <p className="text-slate-600 font-medium">Connecting to secure voice channel...</p>
+                  <p className="text-slate-600 font-medium">Establishing secure connection...</p>
                 </div>
               )}
               {isActive && (
@@ -318,11 +309,14 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
             }`}>
               <i className={`fas ${error.type === 'permission' ? 'fa-microphone-slash' : 'fa-exclamation-circle'} mt-1`}></i>
               <div>
-                <p className="font-bold mb-1">{error.type === 'permission' ? 'Microphone Issue' : 'Oops! Something went wrong'}</p>
+                <p className="font-bold mb-1">{error.type === 'permission' ? 'Microphone Required' : 'Oops! Something went wrong'}</p>
                 <p className="leading-relaxed opacity-90">{error.message}</p>
-                {error.type === 'permission' && (
-                  <button onClick={startSession} className="mt-2 text-xs font-bold underline uppercase tracking-tight">Try again</button>
-                )}
+                <button 
+                  onClick={startSession} 
+                  className="mt-3 px-4 py-1.5 bg-white border border-current rounded-lg text-xs font-bold uppercase tracking-tight hover:bg-white/50"
+                >
+                  Retry Connection
+                </button>
               </div>
             </div>
           )}
@@ -340,13 +334,13 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
               </Button>
             ) : (
               <Button variant="danger" onClick={stopSession} className="w-full sm:w-auto shadow-lg">
-                <i className="fas fa-phone-slash mr-2"></i> End Consultation
+                <i className="fas fa-phone-slash mr-2"></i> End Call
               </Button>
             )}
           </div>
           <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold flex items-center gap-2">
             <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></span>
-            {isActive ? 'Live Channel Active' : 'Channel Encrypted'}
+            {isActive ? 'Secure Line Active' : 'Standby Mode'}
           </div>
         </div>
       </div>
