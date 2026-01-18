@@ -11,7 +11,7 @@ const App: React.FC = () => {
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 scroll-pt-20">
+    <div className="min-h-screen bg-slate-50">
       <Header />
       
       <main>
@@ -69,16 +69,11 @@ const App: React.FC = () => {
 
       <Footer onStartAssistant={() => setIsAssistantOpen(true)} />
 
-      {/* Floating Action Button for Mobile */}
-      <button 
-        onClick={() => setIsAssistantOpen(true)}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-forest-green text-white rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 transition-transform active:scale-95 z-50 ring-4 ring-white"
-        aria-label="Start Voice Assistant"
-      >
-        <i className="fas fa-microphone"></i>
-      </button>
-
-      {/* The Assistant Modal */}
+      {/* 
+          The custom Gemini-based AssistantModal is triggered by specific CTA buttons
+          to handle the localized persona logic (Chloe/Sam) for rebate qualification.
+          The Eleven Labs widget acts as the primary global voice interface.
+      */}
       <AssistantModal 
         isOpen={isAssistantOpen} 
         onClose={() => setIsAssistantOpen(false)} 

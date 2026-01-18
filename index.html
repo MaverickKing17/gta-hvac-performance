@@ -4,19 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Green Heating and Air Inc.</title>
+    <title>Green Heating and Air Inc. - Mississauga HVAC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
         }
         .bg-forest-green { background-color: #1a4332; }
         .text-forest-green { color: #1a4332; }
         .border-forest-green { border-color: #1a4332; }
         .hover-forest-green:hover { background-color: #143528; }
+        
+        /* Ensure sections have proper scroll margin for the fixed header */
+        #rebates, #services, #about {
+            scroll-margin-top: 100px;
+        }
     </style>
 <script type="importmap">
 {
@@ -31,5 +38,9 @@
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
+    
+    <!-- Eleven Labs Conversational AI Widget -->
+    <elevenlabs-convai agent-id="agent_5801kf7b11q4ec7vrnpht15b9gqf"></elevenlabs-convai>
+    <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
 </body>
 </html>
