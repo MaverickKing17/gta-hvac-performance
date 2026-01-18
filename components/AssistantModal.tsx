@@ -16,7 +16,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
   const [isActive, setIsActive] = useState(false);
   const [currentPersona, setCurrentPersona] = useState<Persona>(Persona.CHLOE);
   const [transcriptions, setTranscriptions] = useState<TranscriptionEntry[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; type: 'permission' | 'connection' | 'generic' } | null>(null);
 
   const sessionRef = useRef<any>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -60,16 +60,26 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       setIsConnecting(true);
       setError(null);
 
+      // 1. Check if browser supports mediaDevices
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw { message: "Your browser does not support voice features. Please use a modern browser like Chrome or Edge.", type: 'generic' };
+      }
+
+      // 2. Attempt to get microphone stream
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(err => {
+        console.error("Mic error:", err);
+        throw { 
+          message: "Microphone access was denied. Please click the lock icon in your address bar and set Microphone to 'Allow' to speak with Chloe.",
+          type: 'permission' 
+        };
+      });
+      
       const apiKey = process.env.API_KEY;
       if (!apiKey) {
-        throw new Error("API Key is missing. Please check your environment configuration.");
+        throw { message: "Voice service configuration error. Please try again later.", type: 'connection' };
       }
 
       const ai = createAiClient();
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(err => {
-        throw new Error("Microphone access denied. Please enable your microphone to use the voice assistant.");
-      });
-      
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
 
@@ -165,7 +175,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
           },
           onerror: (e) => {
             console.error("Gemini Live Error:", e);
-            setError("Connection encountered an issue. Please try restarting the call.");
+            setError({ message: "The voice connection was interrupted. Let's try reconnecting.", type: 'connection' });
             stopSession();
           },
           onclose: () => stopSession()
@@ -183,7 +193,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       });
       sessionRef.current = await sessionPromise;
     } catch (err: any) {
-      setError(err.message || "Failed to start consultation. Please try again.");
+      setError(err.type ? err : { message: err.message || "Failed to start consultation.", type: 'generic' });
       setIsConnecting(false);
       stopSession();
     }
@@ -196,12 +206,12 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
         {/* Header */}
-        <div className={`p-6 flex items-center justify-between border-b ${currentPersona === Persona.SAM ? 'bg-red-50 text-red-900 border-red-100' : 'bg-emerald-50 text-emerald-900 border-emerald-100'}`}>
+        <div className={`p-6 flex items-center justify-between border-b transition-colors duration-500 ${currentPersona === Persona.SAM ? 'bg-red-50 text-red-900 border-red-100' : 'bg-emerald-50 text-emerald-900 border-emerald-100'}`}>
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner ${currentPersona === Persona.SAM ? 'bg-red-500 text-white' : 'bg-emerald-700 text-white'}`}>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner transition-colors duration-500 ${currentPersona === Persona.SAM ? 'bg-red-500 text-white' : 'bg-emerald-700 text-white'}`}>
               <i className={currentPersona === Persona.SAM ? 'fas fa-shield-halved' : 'fas fa-headset'}></i>
             </div>
             <div>
@@ -209,76 +219,102 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
               <p className="text-sm opacity-80">{isActive ? 'Live on the line' : isConnecting ? 'Connecting...' : 'Ready to help'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-2" aria-label="Close">
             <i className="fas fa-times text-2xl"></i>
           </button>
         </div>
 
         {/* Conversation Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50 min-h-[300px]">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50 min-h-[300px] scroll-smooth">
           {transcriptions.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-8">
               {!isActive && !isConnecting && (
                 <>
-                  <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mb-4 text-2xl">
+                  <div className="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i className="fas fa-microphone"></i>
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-800">Voice Assistant Ready</h3>
-                  <p className="text-slate-500 mt-2 max-w-sm">
-                    Press start to speak with Chloe about rebates, or mention an emergency to reach Sam immediately.
+                  <h3 className="text-xl font-bold text-slate-800">Start Your Rebate Consultation</h3>
+                  <p className="text-slate-500 mt-2 max-w-sm leading-relaxed">
+                    Ready to find out if you qualify for the $7,500 government rebate? 
+                    Click below to start a secure voice call with Chloe.
                   </p>
                 </>
               )}
               {isConnecting && (
                 <div className="flex flex-col items-center">
                   <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-700 rounded-full animate-spin mb-4"></div>
-                  <p className="text-slate-600">Connecting to secure voice channel...</p>
+                  <p className="text-slate-600 font-medium">Connecting to secure voice channel...</p>
                 </div>
               )}
               {isActive && (
                 <div className="flex flex-col items-center">
-                  <div className="flex gap-1 mb-4 h-8 items-end">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <div key={i} className="w-1.5 bg-emerald-600 rounded-full animate-pulse" style={{ height: `${20 + Math.random() * 80}%`, animationDelay: `${i * 0.1}s` }}></div>
+                  <div className="flex gap-1.5 mb-6 h-12 items-center">
+                    {[1, 2, 3, 4, 5, 6, 7].map(i => (
+                      <div 
+                        key={i} 
+                        className="w-1.5 bg-emerald-600 rounded-full animate-pulse" 
+                        style={{ 
+                          height: `${40 + Math.random() * 60}%`, 
+                          animationDuration: `${0.5 + Math.random()}s`,
+                          animationDelay: `${i * 0.1}s` 
+                        }}
+                      ></div>
                     ))}
                   </div>
-                  <p className="text-emerald-700 font-medium">Listening for your voice...</p>
+                  <p className="text-emerald-700 font-bold text-lg">Listening...</p>
+                  <p className="text-slate-500 text-sm mt-2">Go ahead, tell Chloe about your home's heating.</p>
                 </div>
               )}
             </div>
           ) : (
             transcriptions.map((t, idx) => (
-              <div key={idx} className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
+              <div key={idx} className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+                <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
                   t.role === 'user' 
                     ? 'bg-emerald-800 text-white rounded-tr-none' 
                     : t.persona === Persona.SAM 
-                      ? 'bg-red-100 text-red-900 border border-red-200 rounded-tl-none' 
+                      ? 'bg-red-100 text-red-900 border border-red-200 rounded-tl-none font-medium' 
                       : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
                 }`}>
-                  <p className="text-sm leading-relaxed">{t.text}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{t.text}</p>
                 </div>
               </div>
             ))
           )}
-          {error && <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">{error}</div>}
+          
+          {error && (
+            <div className={`p-4 rounded-xl text-sm border flex gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${
+              error.type === 'permission' ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-red-50 text-red-900 border-red-200'
+            }`}>
+              <i className={`fas ${error.type === 'permission' ? 'fa-lock' : 'fa-exclamation-circle'} mt-1`}></i>
+              <div>
+                <p className="font-bold mb-1">{error.type === 'permission' ? 'Microphone Required' : 'Oops! Something went wrong'}</p>
+                <p className="leading-relaxed opacity-90">{error.message}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="p-6 bg-white border-t flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             {!isActive ? (
-              <Button onClick={startSession} isLoading={isConnecting} className="w-full sm:w-auto">
+              <Button 
+                onClick={startSession} 
+                isLoading={isConnecting} 
+                className="w-full sm:w-auto shadow-lg hover:shadow-emerald-900/10"
+              >
                 <i className="fas fa-phone-alt mr-2"></i> Start Consultation
               </Button>
             ) : (
-              <Button variant="danger" onClick={stopSession} className="w-full sm:w-auto">
-                <i className="fas fa-phone-slash mr-2"></i> End Call
+              <Button variant="danger" onClick={stopSession} className="w-full sm:w-auto shadow-lg hover:shadow-red-900/10">
+                <i className="fas fa-phone-slash mr-2"></i> End Consultation
               </Button>
             )}
           </div>
-          <div className="text-xs text-slate-400 italic">
-            * All calls are recorded for quality assurance. Green Choice Inc.
+          <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Secure Voice Channel Active
           </div>
         </div>
       </div>
