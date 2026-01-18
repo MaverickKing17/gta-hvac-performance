@@ -1,0 +1,7 @@
+{
+  "name": "Green Heating and Air Inc. - Mississauga's Green Energy Experts",
+  "description": "A high-end service platform for Green Heating and Air Inc., featuring an AI-powered voice assistant for HVAC rebates and emergency dispatch.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
