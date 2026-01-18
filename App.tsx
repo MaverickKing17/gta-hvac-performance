@@ -10,12 +10,14 @@ import AssistantModal from './components/AssistantModal';
 const App: React.FC = () => {
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
 
+  const handleStartAssistant = () => setIsAssistantOpen(true);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
       
       <main>
-        <Hero onStartAssistant={() => setIsAssistantOpen(true)} />
+        <Hero onStartAssistant={handleStartAssistant} />
         
         {/* Floating Emergency Banner */}
         <div className="bg-red-600 text-white py-2 sticky top-20 z-30 shadow-md">
@@ -25,15 +27,15 @@ const App: React.FC = () => {
               Emergency? 4-Hour Response Guarantee
             </span>
             <button 
-              onClick={() => setIsAssistantOpen(true)}
-              className="bg-white text-red-600 px-4 py-1 rounded-full text-xs sm:text-sm hover:bg-slate-100 transition-colors"
+              onClick={handleStartAssistant}
+              className="bg-white text-red-600 px-4 py-1 rounded-full text-xs sm:text-sm hover:bg-slate-100 transition-colors focus:ring-2 focus:ring-white focus:outline-none"
             >
               Get Sam (Dispatch)
             </button>
           </div>
         </div>
 
-        <RebateSection />
+        <RebateSection onStartAssistant={handleStartAssistant} />
         
         {/* Benefits Section (Services) */}
         <section id="services" className="py-24 bg-white border-t border-slate-100">
@@ -61,19 +63,24 @@ const App: React.FC = () => {
                 <p className="text-slate-600">We don't just install and leave. We provide ongoing maintenance and priority emergency dispatch.</p>
               </div>
             </div>
+            
+            <div className="mt-16 text-center">
+               <button 
+                 onClick={handleStartAssistant}
+                 className="inline-flex items-center gap-2 bg-forest-green text-white px-8 py-4 rounded-xl font-bold hover:bg-emerald-900 transition-all shadow-lg hover:shadow-forest-green/20 active:scale-95"
+               >
+                 Book a Professional Consultation
+                 <i className="fas fa-arrow-right text-sm"></i>
+               </button>
+            </div>
           </div>
         </section>
 
         <AboutOwner />
       </main>
 
-      <Footer onStartAssistant={() => setIsAssistantOpen(true)} />
+      <Footer onStartAssistant={handleStartAssistant} />
 
-      {/* 
-          The custom Gemini-based AssistantModal is triggered by specific CTA buttons
-          to handle the localized persona logic (Chloe/Sam) for rebate qualification.
-          The Eleven Labs widget acts as the primary global voice interface.
-      */}
       <AssistantModal 
         isOpen={isAssistantOpen} 
         onClose={() => setIsAssistantOpen(false)} 

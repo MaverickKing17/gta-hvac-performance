@@ -2,7 +2,11 @@
 import React from 'react';
 import { REBATES } from '../constants';
 
-const RebateSection: React.FC = () => {
+interface RebateSectionProps {
+  onStartAssistant?: () => void;
+}
+
+const RebateSection: React.FC<RebateSectionProps> = ({ onStartAssistant }) => {
   return (
     <section id="rebates" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,7 +21,11 @@ const RebateSection: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {REBATES.map((rebate, idx) => (
-            <div key={idx} className="group bg-slate-50 border border-slate-100 rounded-2xl p-8 hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 relative overflow-hidden">
+            <button 
+              key={idx} 
+              onClick={onStartAssistant}
+              className="text-left group bg-slate-50 border border-slate-100 rounded-2xl p-8 hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-forest-green"
+            >
               <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/10 transition-colors"></div>
               
               <div className="mb-4 inline-flex items-center justify-center w-12 h-12 bg-white rounded-xl shadow-sm text-forest-green text-xl">
@@ -35,10 +43,11 @@ const RebateSection: React.FC = () => {
                 {rebate.requirement}
               </p>
               
-              <div className="pt-6 border-t border-slate-200">
+              <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Eligibility Check Required</span>
+                <i className="fas fa-chevron-right text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></i>
               </div>
-            </div>
+            </button>
           ))}
         </div>
 
@@ -49,9 +58,12 @@ const RebateSection: React.FC = () => {
             A free energy assessment is the first step to unlocking the full $7,500 benefit. 
             Abe and the team can walk you through it.
           </p>
-          <a href="tel:9055551234" className="inline-block bg-white text-emerald-900 px-8 py-4 rounded-full font-bold hover:bg-emerald-50 transition-colors relative z-10">
-            Speak with an Expert: 905-555-1234
-          </a>
+          <button 
+            onClick={onStartAssistant}
+            className="inline-block bg-white text-emerald-900 px-8 py-4 rounded-full font-bold hover:bg-emerald-50 transition-colors relative z-10 shadow-lg active:scale-95"
+          >
+            Check Your Eligibility Online
+          </button>
         </div>
       </div>
     </section>
