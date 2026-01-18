@@ -55,7 +55,7 @@ export const submitLeadFunctionDeclaration: FunctionDeclaration = {
       age: { type: Type.STRING, description: 'Age of current HVAC unit' },
       summary: { type: Type.STRING, description: 'Summary of the issue or inquiry' },
       temp: { type: Type.STRING, description: 'Priority level: HOT INSTALL, REPAIR, or REBATE' },
-      agent: { type: Type.STRING, description: 'The persona that handled the lead (Chloe or Sam)' },
+      agent: { type: Type.STRING, description: 'The persona that handled the lead (Chloe or Jessica)' },
       address: { type: Type.STRING, description: 'Home address for dispatch' }
     },
     required: ['name', 'phone', 'summary', 'temp', 'agent']

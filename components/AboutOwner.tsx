@@ -5,22 +5,27 @@ const AboutOwner: React.FC = () => {
   return (
     <section id="about" className="py-24 bg-slate-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-center gap-16">
-          <div className="w-full lg:w-1/2 relative">
-            {/* Aspect ratio and object positioning refined to ensure the face (top part of the image) is visible */}
-            <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl ring-8 ring-white bg-white max-h-[600px]">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+          {/* Increased column width for the image to lg:w-3/5 (60%) to make it "bigger" */}
+          <div className="w-full lg:w-3/5 relative">
+            <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(26,67,50,0.15)] ring-12 ring-white bg-white">
               <img 
                 src="https://i.ibb.co/5h96y7Zw/gemini-3-pro-image-preview-2k-a-Replace-the-current.png" 
                 alt="Abe, Owner of Green Heating & Air Inc." 
-                className="w-full h-full object-cover object-top"
+                className="w-full h-auto block transform hover:scale-105 transition-transform duration-700"
                 loading="lazy"
-                style={{ aspectRatio: '3/4' }}
               />
+              {/* Subtle overlay for depth */}
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/10 to-transparent pointer-events-none"></div>
             </div>
-            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-emerald-800 rounded-full blur-3xl opacity-20 -z-10"></div>
+            
+            {/* Decorative elements to frame the larger image */}
+            <div className="absolute -bottom-12 -right-12 w-80 h-80 bg-emerald-800 rounded-full blur-[100px] opacity-20 -z-10"></div>
+            <div className="absolute -top-12 -left-12 w-48 h-48 border-8 border-emerald-100 rounded-full -z-10 opacity-50"></div>
           </div>
           
-          <div className="w-full lg:w-1/2">
+          {/* Text column adjusted to lg:w-2/5 (40%) */}
+          <div className="w-full lg:w-2/5">
             <span className="inline-block px-4 py-1.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider mb-6">Meet the Owner</span>
             <h2 className="text-4xl font-extrabold text-slate-900 mb-8 leading-tight">Specializing in high-efficiency systems that pay for themselves.</h2>
             
@@ -36,20 +41,20 @@ const AboutOwner: React.FC = () => {
               </p>
             </div>
             
-            <div className="mt-10 flex flex-wrap gap-8">
+            <div className="mt-10 flex flex-wrap gap-6 sm:gap-10">
               <div>
                 <div className="text-3xl font-bold text-slate-900 mb-1">1,200+</div>
-                <div className="text-sm text-slate-500 uppercase tracking-widest font-semibold">Installations in GTA</div>
+                <div className="text-sm text-slate-500 uppercase tracking-widest font-semibold">Installs</div>
               </div>
               <div className="w-px h-12 bg-slate-200 hidden sm:block"></div>
               <div>
                 <div className="text-3xl font-bold text-slate-900 mb-1">15+</div>
-                <div className="text-sm text-slate-500 uppercase tracking-widest font-semibold">Years Experience</div>
+                <div className="text-sm text-slate-500 uppercase tracking-widest font-semibold">Years</div>
               </div>
               <div className="w-px h-12 bg-slate-200 hidden sm:block"></div>
               <div>
                 <div className="text-3xl font-bold text-slate-900 mb-1">5.0</div>
-                <div className="text-sm text-slate-500 uppercase tracking-widest font-semibold">Google Rating</div>
+                <div className="text-sm text-slate-500 uppercase tracking-widest font-semibold">Rating</div>
               </div>
             </div>
 
