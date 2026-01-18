@@ -11,7 +11,7 @@ const App: React.FC = () => {
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 scroll-pt-20">
       <Header />
       
       <main>
@@ -35,8 +35,8 @@ const App: React.FC = () => {
 
         <RebateSection />
         
-        {/* Benefits Section */}
-        <section className="py-24 bg-white border-t border-slate-100">
+        {/* Benefits Section (Services) */}
+        <section id="services" className="py-24 bg-white border-t border-slate-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               <div className="flex flex-col items-center text-center p-6">
@@ -67,12 +67,13 @@ const App: React.FC = () => {
         <AboutOwner />
       </main>
 
-      <Footer />
+      <Footer onStartAssistant={() => setIsAssistantOpen(true)} />
 
       {/* Floating Action Button for Mobile */}
       <button 
         onClick={() => setIsAssistantOpen(true)}
         className="fixed bottom-6 right-6 w-16 h-16 bg-forest-green text-white rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 transition-transform active:scale-95 z-50 ring-4 ring-white"
+        aria-label="Start Voice Assistant"
       >
         <i className="fas fa-microphone"></i>
       </button>

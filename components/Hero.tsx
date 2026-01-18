@@ -7,6 +7,13 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ onStartAssistant }) => {
+  const scrollToRebates = () => {
+    const element = document.getElementById('rebates');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="relative overflow-hidden bg-forest-green pt-24 pb-32">
       {/* Decorative patterns */}
@@ -23,24 +30,25 @@ const Hero: React.FC<HeroProps> = ({ onStartAssistant }) => {
             Access up to $7,500 in government incentives today.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" onClick={onStartAssistant} className="w-full sm:w-auto shadow-xl">
+            <Button size="lg" onClick={onStartAssistant} className="w-full sm:w-auto shadow-xl group">
+              <i className="fas fa-microphone mr-2 group-hover:animate-pulse"></i>
               Check My Eligibility
             </Button>
-            <Button size="lg" variant="secondary" className="w-full sm:w-auto" onClick={() => window.location.hash = '#rebates'}>
+            <Button size="lg" variant="secondary" className="w-full sm:w-auto" onClick={scrollToRebates}>
               View All Rebates
             </Button>
           </div>
           
-          <div className="mt-12 flex items-center justify-center gap-8 grayscale opacity-60">
-            <div className="flex items-center text-white gap-2">
+          <div className="mt-12 flex items-center justify-center gap-8 grayscale opacity-60 overflow-x-auto pb-4 sm:pb-0">
+            <div className="flex items-center text-white gap-2 flex-shrink-0">
               <i className="fas fa-check-circle text-emerald-400"></i>
               <span className="font-semibold text-sm tracking-wider uppercase">Enbridge Authorized</span>
             </div>
-            <div className="flex items-center text-white gap-2">
+            <div className="flex items-center text-white gap-2 flex-shrink-0">
               <i className="fas fa-check-circle text-emerald-400"></i>
               <span className="font-semibold text-sm tracking-wider uppercase">Energy Star Partner</span>
             </div>
-            <div className="flex items-center text-white gap-2">
+            <div className="flex items-center text-white gap-2 flex-shrink-0">
               <i className="fas fa-check-circle text-emerald-400"></i>
               <span className="font-semibold text-sm tracking-wider uppercase">4-Hour Dispatch</span>
             </div>

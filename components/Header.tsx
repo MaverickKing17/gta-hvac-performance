@@ -4,11 +4,22 @@ import React, { useState } from 'react';
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMenuOpen(false);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <div className="flex items-center gap-3">
+          <button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-3 text-left focus:outline-none"
+          >
             <div className="w-10 h-10 bg-forest-green rounded-lg flex items-center justify-center">
               <i className="fas fa-leaf text-white"></i>
             </div>
@@ -16,20 +27,21 @@ const Header: React.FC = () => {
               <span className="text-xl font-bold text-slate-900 block leading-none">Green Heating</span>
               <span className="text-xs text-forest-green font-semibold tracking-widest uppercase">& Air Inc.</span>
             </div>
-          </div>
+          </button>
           
           <nav className="hidden md:flex space-x-8 items-center">
-            <a href="#rebates" className="text-slate-600 hover:text-forest-green font-medium">2026 Rebates</a>
-            <a href="#services" className="text-slate-600 hover:text-forest-green font-medium">Services</a>
-            <a href="#about" className="text-slate-600 hover:text-forest-green font-medium">About Abe</a>
-            <a href="tel:9055551234" className="bg-forest-green text-white px-5 py-2 rounded-full font-bold hover:bg-emerald-900 transition-colors flex items-center gap-2">
+            <button onClick={() => scrollToSection('rebates')} className="text-slate-600 hover:text-forest-green font-medium transition-colors">2026 Rebates</button>
+            <button onClick={() => scrollToSection('services')} className="text-slate-600 hover:text-forest-green font-medium transition-colors">Services</button>
+            <button onClick={() => scrollToSection('about')} className="text-slate-600 hover:text-forest-green font-medium transition-colors">About Abe</button>
+            <a href="tel:9055551234" className="bg-forest-green text-white px-5 py-2 rounded-full font-bold hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-sm hover:shadow-md">
               <i className="fas fa-phone-alt text-sm"></i> 905-555-1234
             </a>
           </nav>
 
           <button 
-            className="md:hidden text-slate-600 text-2xl"
+            className="md:hidden text-slate-600 text-2xl p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle Menu"
           >
             <i className={`fas ${isMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
           </button>
@@ -38,11 +50,11 @@ const Header: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t p-4 space-y-4 shadow-xl">
-          <a href="#rebates" className="block text-slate-700 py-2 font-medium">2026 Rebates</a>
-          <a href="#services" className="block text-slate-700 py-2 font-medium">Services</a>
-          <a href="#about" className="block text-slate-700 py-2 font-medium">About Abe</a>
-          <a href="tel:9055551234" className="block bg-forest-green text-white px-5 py-3 rounded-lg font-bold text-center">
+        <div className="md:hidden bg-white border-t p-6 space-y-6 shadow-2xl animate-in slide-in-from-top duration-300">
+          <button onClick={() => scrollToSection('rebates')} className="block w-full text-left text-lg text-slate-700 font-medium">2026 Rebates</button>
+          <button onClick={() => scrollToSection('services')} className="block w-full text-left text-lg text-slate-700 font-medium">Services</button>
+          <button onClick={() => scrollToSection('about')} className="block w-full text-left text-lg text-slate-700 font-medium">About Abe</button>
+          <a href="tel:9055551234" className="block bg-forest-green text-white px-5 py-4 rounded-xl font-bold text-center shadow-lg">
             Call 905-555-1234
           </a>
         </div>

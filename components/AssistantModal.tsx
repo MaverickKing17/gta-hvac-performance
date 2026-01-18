@@ -27,11 +27,30 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
 
   const stopSession = useCallback(() => {
     if (sessionRef.current) {
-      sessionRef.current.close?.();
+      try {
+        sessionRef.current.close?.();
+      } catch (e) {
+        console.warn("Session close error:", e);
+      }
       sessionRef.current = null;
     }
-    sourcesRef.current.forEach(s => s.stop());
+    
+    sourcesRef.current.forEach(s => {
+      try { s.stop(); } catch (e) {}
+    });
     sourcesRef.current.clear();
+    
+    if (audioContextRef.current?.state !== 'closed') {
+      audioContextRef.current?.close();
+    }
+    if (inputAudioContextRef.current?.state !== 'closed') {
+      inputAudioContextRef.current?.close();
+    }
+    
+    audioContextRef.current = null;
+    inputAudioContextRef.current = null;
+    nextStartTimeRef.current = 0;
+    
     setIsActive(false);
     setIsConnecting(false);
   }, []);
@@ -41,8 +60,15 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       setIsConnecting(true);
       setError(null);
 
+      const apiKey = process.env.API_KEY;
+      if (!apiKey) {
+        throw new Error("API Key is missing. Please check your environment configuration.");
+      }
+
       const ai = createAiClient();
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(err => {
+        throw new Error("Microphone access denied. Please enable your microphone to use the voice assistant.");
+      });
       
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -54,28 +80,30 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
             setIsActive(true);
             setIsConnecting(false);
             
-            // Start streaming microphone
-            const source = inputAudioContextRef.current!.createMediaStreamSource(stream);
-            const scriptProcessor = inputAudioContextRef.current!.createScriptProcessor(4096, 1, 1);
-            
-            scriptProcessor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              const int16 = new Int16Array(inputData.length);
-              for (let i = 0; i < inputData.length; i++) {
-                int16[i] = inputData[i] * 32768;
-              }
-              const pcmBlob = {
-                data: encodeAudio(new Uint8Array(int16.buffer)),
-                mimeType: 'audio/pcm;rate=16000',
+            if (inputAudioContextRef.current) {
+              const source = inputAudioContextRef.current.createMediaStreamSource(stream);
+              const scriptProcessor = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
+              
+              scriptProcessor.onaudioprocess = (e) => {
+                const inputData = e.inputBuffer.getChannelData(0);
+                const int16 = new Int16Array(inputData.length);
+                for (let i = 0; i < inputData.length; i++) {
+                  int16[i] = inputData[i] * 32768;
+                }
+                const pcmBlob = {
+                  data: encodeAudio(new Uint8Array(int16.buffer)),
+                  mimeType: 'audio/pcm;rate=16000',
+                };
+                sessionPromise.then(session => {
+                  if (session) session.sendRealtimeInput({ media: pcmBlob });
+                }).catch(() => {});
               };
-              sessionPromise.then(session => session.sendRealtimeInput({ media: pcmBlob }));
-            };
 
-            source.connect(scriptProcessor);
-            scriptProcessor.connect(inputAudioContextRef.current!.destination);
+              source.connect(scriptProcessor);
+              scriptProcessor.connect(inputAudioContextRef.current.destination);
+            }
           },
           onmessage: async (message: LiveServerMessage) => {
-            // Handle Audio Output
             const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
             if (base64Audio && audioContextRef.current) {
               const ctx = audioContextRef.current;
@@ -90,7 +118,6 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
               sourcesRef.current.add(source);
             }
 
-            // Handle Transcriptions
             if (message.serverContent?.inputTranscription) {
               transcriptionBufferRef.current.user += message.serverContent.inputTranscription.text;
             }
@@ -105,8 +132,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
               if (userText) setTranscriptions(prev => [...prev, { role: 'user', text: userText, timestamp: new Date() }]);
               if (modelText) setTranscriptions(prev => [...prev, { role: 'model', text: modelText, timestamp: new Date(), persona: currentPersona }]);
               
-              // Trigger Persona Switch detection (Simple keyword based for UI state)
-              const emergencyKeywords = ["gas smell", "no heat", "water leak", "banging", "emergency"];
+              const emergencyKeywords = ["gas smell", "no heat", "water leak", "banging", "emergency", "urgent"];
               if (emergencyKeywords.some(k => userText.toLowerCase().includes(k) || modelText.toLowerCase().includes(k))) {
                 setCurrentPersona(Persona.SAM);
               }
@@ -114,33 +140,32 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
               transcriptionBufferRef.current = { user: '', model: '' };
             }
 
-            // Handle Function Calls
             if (message.toolCall) {
               for (const fc of message.toolCall.functionCalls) {
                 if (fc.name === 'submitLeadData') {
-                  console.log('Lead submitted:', fc.args);
-                  // Simulate Webhook
                   fetch(WEBHOOK_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(fc.args)
-                  }).catch(e => console.error("Webhook simulated fail:", e));
+                  }).catch(() => {});
 
                   sessionPromise.then(s => s.sendToolResponse({
-                    functionResponses: { id: fc.id, name: fc.name, response: { result: "Success! Lead info logged to dispatch." } }
-                  }));
+                    functionResponses: { id: fc.id, name: fc.name, response: { result: "Success" } }
+                  })).catch(() => {});
                 }
               }
             }
 
             if (message.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => s.stop());
+              sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
             }
           },
           onerror: (e) => {
             console.error("Gemini Live Error:", e);
-            setError("Connection lost. Please try again.");
+            setError("Connection encountered an issue. Please try restarting the call.");
             stopSession();
           },
           onclose: () => stopSession()
@@ -158,17 +183,15 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
       });
       sessionRef.current = await sessionPromise;
     } catch (err: any) {
-      console.error(err);
-      setError("Failed to start microphone or connection.");
+      setError(err.message || "Failed to start consultation. Please try again.");
       setIsConnecting(false);
+      stopSession();
     }
   };
 
   useEffect(() => {
-    if (!isOpen) {
-      stopSession();
-    }
-  }, [isOpen, stopSession]);
+    return () => stopSession();
+  }, [stopSession]);
 
   if (!isOpen) return null;
 
@@ -216,7 +239,7 @@ const AssistantModal: React.FC<AssistantModalProps> = ({ isOpen, onClose }) => {
                 <div className="flex flex-col items-center">
                   <div className="flex gap-1 mb-4 h-8 items-end">
                     {[1, 2, 3, 4, 5].map(i => (
-                      <div key={i} className="w-1.5 bg-emerald-600 rounded-full animate-pulse" style={{ height: `${Math.random() * 100}%`, animationDelay: `${i * 0.1}s` }}></div>
+                      <div key={i} className="w-1.5 bg-emerald-600 rounded-full animate-pulse" style={{ height: `${20 + Math.random() * 80}%`, animationDelay: `${i * 0.1}s` }}></div>
                     ))}
                   </div>
                   <p className="text-emerald-700 font-medium">Listening for your voice...</p>
